@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For You 💙</title>
+    <style>
+        /* --- FONTS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&family=Caveat:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: #050505; 
+            background-image: radial-gradient(circle at 50% 50%, #0f172a 0%, #000000 100%);
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white;
+            perspective: 1000px;
+        }
+
+        /* --- STARDUST (FIREFLIES) --- */
+        #stardust { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
+        .particle {
+            position: absolute; 
+            background: radial-gradient(circle, #fff, rgba(65, 105, 225, 0.8)); 
+            border-radius: 50%; 
+            opacity: 0; 
+            animation: floatParticle 8s infinite linear; 
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+        @keyframes floatParticle {
+            0% { transform: translateY(110vh) scale(0.2); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        /* --- LAYERS --- */
+        #start-overlay, #curtain-layer, #animation-stage, #game-wrapper, #proposal-layer, #celebration-screen { z-index: 10; }
+
+        /* --- START SCREEN --- */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 8000;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 1s;
+        }
+        .start-btn {
+            padding: 15px 50px; background: rgba(65, 105, 225, 0.1);
+            border: 1px solid #4169e1; color: #4169e1;
+            font-size: 1.2rem; letter-spacing: 4px; text-transform: uppercase;
+            cursor: pointer; transition: 0.5s; font-family: 'Cinzel', serif;
+            box-shadow: 0 0 20px rgba(65, 105, 225, 0.2); backdrop-filter: blur(5px);
+        }
+        .start-btn:hover { background: #4169e1; color: #fff; box-shadow: 0 0 50px #4169e1; letter-spacing: 6px; }
+
+        /* --- CURTAIN --- */
+        #curtain-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5000; }
+        .curtain-heart {
+            position: absolute; top: -150px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/210/210545.png');
+            background-size: contain; background-repeat: no-repeat;
+            opacity: 1; filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));
+        }
+
+        /* --- ANIMATION STAGE --- */
+        #animation-stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 4000; display: none; align-items: center; justify-content: center;
+        }
+        .scene {
+            display: none; flex-direction: column; align-items: center;
+            opacity: 0; transition: opacity 1s, transform 1s;
+            transform: scale(0.8) rotateY(20deg);
+        }
+        .scene.active { opacity: 1; transform: scale(1) rotateY(0deg); }
+        .scene img {
+            width: 320px; height: 420px; object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(65, 105, 225, 0.4);
+            margin-bottom: 30px; animation: hoverFloat 4s ease-in-out infinite;
+        }
+        .scene h2 { font-family: 'Dancing Script'; color: #fff; font-size: 3rem; text-shadow: 0 0 15px #4169e1; }
+        @keyframes hoverFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* --- INTRO NOTE --- */
+        #intro-note {
+            position: absolute; z-index: 200; text-align: center; 
+            width: 90%; max-width: 700px; display: none;
+        }
+        #intro-note h1 {
+            font-family: 'Dancing Script'; color: #4169e1; font-size: 2.8rem;
+            margin-bottom: 25px; text-shadow: 0 0 15px rgba(65, 105, 225, 1);
+        }
+        #intro-note p { 
+            font-family: 'Montserrat', sans-serif; font-size: 1.3rem; 
+            color: #eee; line-height: 1.8; min-height: 100px; text-shadow: 0 2px 4px black;
+        }
+
+        /* --- GAME UI --- */
+        #game-wrapper {
+            position: relative; width: 350px;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
+            padding: 25px; display: none; flex-direction: column; align-items: center;
+            opacity: 0; transition: opacity 1s; box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            padding-bottom: 60px;
+        }
+        .game-stats {
+            width: 100%; display: flex; justify-content: space-between;
+            margin-bottom: 20px; font-family: 'Cinzel'; color: #4169e1; font-weight: bold;
+        }
+        .grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 15px;
+        }
+        .tile {
+            width: 65px; height: 65px; background: rgba(255,255,255,0.05); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: 0.2s; border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+        .tile:hover { background: rgba(255,255,255,0.1); }
+        .tile img { width: 85%; height: 85%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3)); }
+        
+        .tile.selected { background: rgba(65, 105, 225, 0.3); border: 2px solid #4169e1; transform: scale(0.95); }
+        .tile.match { animation: popSuccess 0.5s ease-out; background: rgba(0, 255, 128, 0.2); }
+        .tile.shake { animation: shake 0.4s ease-in-out; background: rgba(255, 0, 0, 0.2); }
+        .float-score { position: absolute; color: #00ff88; font-weight: bold; font-size: 1.5rem; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 50; text-shadow: 0 0 5px black; }
+        @keyframes popSuccess { 0%{transform:scale(1);} 50%{transform:scale(1.2) rotate(10deg);} 100%{transform:scale(0);} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes floatUp { 0% {transform: translateY(0); opacity:1;} 100% {transform: translateY(-50px); opacity:0;} }
+
+        .refresh-btn {
+            position: absolute; bottom: 15px; right: 15px;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; border-radius: 50%; width: 40px; height: 40px;
+            font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; z-index: 20;
+        }
+        .refresh-btn:hover { background: #4169e1; transform: rotate(180deg) scale(1.1); box-shadow: 0 0 10px #4169e1; }
+
+        /* --- PROPOSAL CARD --- */
+        #proposal-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 6000; 
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .card {
+            background: rgba(10, 15, 30, 0.95);
+            border: 1px solid #4169e1; padding: 3rem 2rem;
+            text-align: center; width: 90%; max-width: 450px; height: 400px;
+            box-shadow: 0 0 80px rgba(65, 105, 225, 0.3); 
+            position: relative; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .card h1 { font-family: 'Dancing Script'; color: #4169e1; font-size: 3.5rem; margin-bottom: 20px; }
+        .card p { color: #ccc; font-size: 1.1rem; margin-bottom: 40px; }
+        
+        .btn-yes { padding: 15px 50px; background: #4169e1; color: white; border: none; border-radius: 50px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 0 20px rgba(65, 105, 225, 0.5); z-index: 2; }
+        .btn-no { padding: 10px 20px; position: absolute; bottom: 30px; right: 30px; font-size: 1rem; border: 1px solid #555; background: #222; color: #888; border-radius: 30px; cursor: pointer; transition: 0.1s; z-index: 10; }
+
+        /* --- CELEBRATION --- */
+        #celebration-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 7000; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .celebration-container {
+            display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: nowrap;
+        }
+        .photo-frame {
+            background: #fff; padding: 10px; transform: rotate(-3deg);
+            box-shadow: 0 0 60px rgba(65, 105, 225, 0.5);
+            animation: float 4s ease-in-out infinite;
+        }
+        .us-photo { width: 280px; height: 380px; object-fit: cover; display: block; }
+        .tubby-side { width: 140px; height: auto; animation: bounce 2s infinite ease-in-out; filter: drop-shadow(0 0 20px rgba(65,105,225,0.4)); }
+        .tubby-right { transform: scaleX(-1); }
+
+        /* --- LETTER ICON --- */
+        #letter-icon-container {
+            display: none; /* Hidden until YES is clicked */
+            margin-top: 30px;
+            animation: bounceLetter 2s infinite ease-in-out;
+            cursor: pointer;
+            z-index: 7500;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        #letter-icon-container:hover { transform: scale(1.1); }
+        
+        .letter-icon {
+            font-size: 4rem;
+            filter: drop-shadow(0 0 10px rgba(65, 105, 225, 0.8));
+        }
+        .click-hint { 
+            font-size: 1.2rem; 
+            color: #fff; 
+            margin-top: 5px; 
+            font-family: 'Dancing Script', cursive; /* Fancy font for the text */
+            text-shadow: 0 0 5px #4169e1;
+            text-decoration: underline;
+        }
+
+        @keyframes bounceLetter { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* --- LETTER MODAL (PAPER STYLE) --- */
+        #letter-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9500; /* Just below Stardust */
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .paper {
+            width: 90%; max-width: 600px;
+            background: #fdfbf7; /* Off-white paper color */
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.05);
+            border-radius: 5px;
+            transform: rotate(1deg);
+            position: relative;
+            max-height: 80vh; overflow-y: auto;
+            border: 1px solid #e0dcd3;
+        }
+        .paper-content {
+            font-family: 'Caveat', cursive; /* HANDWRITING FONT */
+            font-size: 1.6rem;
+            color: #333;
+            line-height: 1.6;
+            text-align: left;
+        }
+        .paper h2 {
+            font-family: 'Dancing Script';
+            text-align: center;
+            color: #4169e1;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .close-letter {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 2rem; color: #888; cursor: pointer;
+            font-family: sans-serif; transition: 0.3s;
+        }
+        .close-letter:hover { color: #d00; transform: scale(1.2); }
+
+        @media (max-width: 768px) {
+            .celebration-container { flex-direction: column; gap: 10px; }
+            .tubby-side { width: 100px; }
+            .tubby-right { transform: scaleX(-1); order: 3; }
+            .tubby-left { order: 1; }
+            .photo-frame { order: 2; transform: scale(0.8) rotate(-3deg); }
+            .paper { padding: 25px; }
+            .paper-content { font-size: 1.4rem; }
+        }
+
+        #error-box { display: none; position: fixed; top: 10px; left: 10px; z-index: 20000; background: rgba(50, 0, 0, 0.9); color: white; padding: 20px; border: 1px solid red; }
+    </style>
+</head>
+<body>
+
+    <div id="stardust"></div>
+
+    <div id="error-box">
+        <h3>⚠️ Image Error</h3>
+        <p>Ensure files are named: <strong>1.jpg, 2.jpg, 3.jpg, 4.jpg</strong></p>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f792cb.mp3?filename=romantic-piano-123281.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-overlay">
+        <button class="start-btn" onclick="startSequence()">Begin Experience</button>
+    </div>
+
+    <div id="curtain-layer"></div>
+
+    <div id="animation-stage">
+        <div class="scene" id="scene-dance">
+            <img src="1.jpg" alt="Dance" onerror="handleError(this)">
+            <h2>The Grace</h2>
+        </div>
+        <div class="scene" id="scene-sport">
+            <img src="2.jpg" alt="Sport" onerror="handleError(this)">
+            <h2>The Power</h2>
+        </div>
+        <div class="scene" id="scene-art">
+            <img src="3.jpg" alt="Art" onerror="handleError(this)">
+            <h2>The Creativity</h2>
+        </div>
+    </div>
+
+    <div id="intro-note">
+        <h1>For The Artist, Athlete, & Amazing Dancer...</h1>
+        <p><span id="typewriter"></span></p>
+    </div>
+
+    <div id="game-wrapper">
+        <div class="game-stats">
+            <span>Match 3 to Score!</span>
+            <span id="score">Score: 0/100</span>
+        </div>
+        <div class="grid" id="grid"></div>
+        <p style="margin-top:20px; color:#aaa; font-size:0.9rem;">(Swap adjacent items to make a row of 3)</p>
+        <button class="refresh-btn" onclick="refreshBoard()" title="Refresh Board">🔄</button>
+    </div>
+
+    <div id="proposal-layer">
+        <div class="card" id="proposal-card">
+            <h1>Be My Valentine?</h1>
+            <p>You design beauty, you play to win...<br>Will you let me win your heart?</p>
+            <button class="btn-yes" onclick="celebrate()">YES 💙</button>
+            <button class="btn-no" id="noBtn">No</button>
+        </div>
+    </div>
+
+    <div id="celebration-screen">
+        <h1 style="font-family:'Dancing Script'; color:#4169e1; font-size:4rem; margin-bottom: 30px; text-shadow: 0 0 20px #4169e1; text-align: center;">We are Official! 💙</h1>
+        <div class="celebration-container">
+            <img src="https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" class="tubby-side tubby-left" alt="Tubby">
+            <div class="photo-frame">
+                <img src="4.jpg" class="us-photo" alt="Us" onerror="handleError(this)">
+            </div>
+            <img src="https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" class="tubby-side tubby-right" alt="Tubby">
+        </div>
+        
+        <div id="letter-icon-container" onclick="openLetter()">
+            <div class="letter-icon">💌</div>
+            <div class="click-hint">Read My Heart</div>
+        </div>
+    </div>
+
+    <div id="letter-modal">
+        <div class="paper">
+            <span class="close-letter" onclick="closeLetter()">&times;</span>
+            <h2>My Promise</h2>
+            <div class="paper-content">
+                <p>We became so close in no time.</p>
+                <p>We shared laughter.</p>
+                <p>We shared our clinginess.</p>
+                <p>We even fought over silly little things and somehow it all felt so good and so real.</p>
+                <br>
+                <p>Whenever you were around me I felt light. I felt calm. I felt happy.</p>
+                <p>From our very first hug to that soft kiss on my forehead… it still feels unreal and beautiful to me.</p>
+                <br>
+                <p>I promise I will keep putting in effort for you.</p>
+                <p>I will always try my best to make you feel safe, cared for and deeply loved.</p>
+                <p>Every day I try to grow.</p>
+                <p>I try to become a better man for you.</p>
+                <br>
+                <p style="text-align:right; color:#4169e1; font-weight:bold;">I love you so much, Kanmani. 💙</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const gameItems = [
+            { type: 'mango',     src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f96d.png' }, 
+            { type: 'orange',    src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f34a.png' }, 
+            { type: 'grapes',    src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f347.png' }, 
+            { type: 'strawberry',src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f353.png' }, 
+            { type: 'watermelon',src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f349.png' }, 
+            { type: 'pineapple', src: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f34d.png' } 
+        ];
+
+        /* --- ELEMENTS --- */
+        const stardust = document.getElementById('stardust');
+        const startOverlay = document.getElementById('start-overlay');
+        const bgMusic = document.getElementById('bgMusic');
+        const curtainLayer = document.getElementById('curtain-layer');
+        const animStage = document.getElementById('animation-stage');
+        const scenes = [document.getElementById('scene-dance'), document.getElementById('scene-sport'), document.getElementById('scene-art')];
+        const introNote = document.getElementById('intro-note');
+        const typeText = document.getElementById('typewriter');
+        const gameWrapper = document.getElementById('game-wrapper');
+        const grid = document.getElementById('grid');
+        const scoreEl = document.getElementById('score');
+        const letterIcon = document.getElementById('letter-icon-container');
+        const letterModal = document.getElementById('letter-modal');
+
+        // PARTICLES
+        function createStardust() {
+            for(let i=0; i<300; i++){ 
+                let p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.left = Math.random()*100 + 'vw';
+                let size = Math.random()*3 + 1;
+                p.style.width = size + 'px'; p.style.height = size + 'px';
+                p.style.animationDuration = Math.random()*8 + 5 + 's'; 
+                p.style.animationDelay = Math.random()*10 + 's';
+                stardust.appendChild(p);
+            }
+        }
+        createStardust();
+
+        function handleError(img) {
+            document.getElementById('error-box').style.display = 'block';
+            if (!img.src.includes('.jpg.jpg')) { img.src = img.src + '.jpg'; }
+        }
+
+        // SEQUENCE
+        function startSequence() {
+            bgMusic.volume = 0.5; bgMusic.play().catch(e => console.log(e));
+            startOverlay.style.opacity = '0';
+            setTimeout(() => { startOverlay.style.display = 'none'; }, 1000);
+            dropCurtain();
+            setTimeout(() => { stopRain(); setTimeout(runAnimation, 2000); }, 3500); 
+        }
+
+        function runAnimation() {
+            animStage.style.display = 'flex';
+            showScene(0);
+            setTimeout(() => { hideScene(0); setTimeout(() => {
+                showScene(1);
+                setTimeout(() => { hideScene(1); setTimeout(() => {
+                    showScene(2);
+                    setTimeout(() => { hideScene(2); setTimeout(() => {
+                        animStage.style.display = 'none';
+                        showIntro();
+                    }, 1000); }, 4000);
+                }, 1000); }, 4000);
+            }, 1000); }, 4000);
+        }
+
+        function showScene(idx) {
+            scenes[idx].style.display = 'flex';
+            void scenes[idx].offsetWidth;
+            scenes[idx].classList.add('active');
+        }
+        function hideScene(idx) {
+            scenes[idx].classList.remove('active');
+            setTimeout(() => scenes[idx].style.display = 'none', 1000);
+        }
+
+        function showIntro() {
+            introNote.style.display = 'block';
+            let txt = "You paint the world with creativity, you dance with grace...";
+            let i = 0;
+            function type() {
+                if (i < txt.length) { typeText.innerHTML += txt.charAt(i); i++; setTimeout(type, 50); }
+                else { setTimeout(() => {
+                    introNote.style.opacity = '0';
+                    setTimeout(() => {
+                        introNote.style.display = 'none';
+                        gameWrapper.style.display = 'flex';
+                        void gameWrapper.offsetWidth;
+                        gameWrapper.style.opacity = '1';
+                        initGame();
+                    }, 1000);
+                }, 3000); }
+            }
+            type();
+        }
+
+        // --- REAL MATCH-3 LOGIC ---
+        const width = 4;
+        let squares = [];
+        let score = 0;
+        let selectedTile = null;
+
+        function initGame() {
+            grid.innerHTML = '';
+            squares = [];
+            selectedTile = null;
+            for(let i=0; i<width*width; i++) {
+                let div = document.createElement('div');
+                div.className = 'tile';
+                div.setAttribute('id', i);
+                let randomItem = gameItems[Math.floor(Math.random()*gameItems.length)];
+                div.setAttribute('data-type', randomItem.type);
+                let img = document.createElement('img');
+                img.src = randomItem.src;
+                div.appendChild(img);
+                div.onclick = () => tileClick(div);
+                grid.appendChild(div);
+                squares.push(div);
+            }
+        }
+        
+        function refreshBoard() {
+            let btn = document.querySelector('.refresh-btn');
+            btn.style.transform = "rotate(360deg)";
+            setTimeout(() => btn.style.transform = "rotate(0deg)", 300);
+            initGame();
+        }
+
+        function tileClick(tile) {
+            if(!selectedTile) {
+                selectedTile = tile;
+                tile.classList.add('selected');
+            } else {
+                let prev = selectedTile;
+                selectedTile.classList.remove('selected');
+                selectedTile = null;
+                if(prev !== tile) {
+                    let prevId = parseInt(prev.getAttribute('id'));
+                    let currId = parseInt(tile.getAttribute('id'));
+                    let validMoves = [prevId-1, prevId+1, prevId-width, prevId+width];
+                    if (validMoves.includes(currId)) { swapTiles(prev, tile); } 
+                    else { tile.classList.add('shake'); setTimeout(() => tile.classList.remove('shake'), 400); }
+                }
+            }
+        }
+
+        function swapTiles(tile1, tile2) {
+            let tempHtml = tile1.innerHTML; tile1.innerHTML = tile2.innerHTML; tile2.innerHTML = tempHtml;
+            let tempType = tile1.getAttribute('data-type');
+            tile1.setAttribute('data-type', tile2.getAttribute('data-type'));
+            tile2.setAttribute('data-type', tempType);
+            if (checkMatches()) { } else {
+                setTimeout(() => {
+                    tile1.classList.add('shake'); tile2.classList.add('shake');
+                    let tempHtml = tile1.innerHTML; tile1.innerHTML = tile2.innerHTML; tile2.innerHTML = tempHtml;
+                    let tempType = tile1.getAttribute('data-type');
+                    tile1.setAttribute('data-type', tile2.getAttribute('data-type'));
+                    tile2.setAttribute('data-type', tempType);
+                    setTimeout(() => { tile1.classList.remove('shake'); tile2.classList.remove('shake'); }, 400);
+                }, 400);
+            }
+        }
+
+        function checkMatches() {
+            let matchFound = false;
+            for (let i = 0; i < 16; i++) {
+                if (i % width > width - 3) continue;
+                let row = [i, i+1, i+2];
+                let type = squares[i].getAttribute('data-type');
+                if (row.every(idx => squares[idx].getAttribute('data-type') === type)) { scoreMatches(row); matchFound = true; }
+            }
+            for (let i = 0; i < 8; i++) {
+                let col = [i, i+width, i+width*2];
+                let type = squares[i].getAttribute('data-type');
+                if (col.every(idx => squares[idx].getAttribute('data-type') === type)) { scoreMatches(col); matchFound = true; }
+            }
+            return matchFound;
+        }
+
+        function scoreMatches(indices) {
+            score += 20;
+            scoreEl.innerText = "Score: " + score + "/100";
+            let centerIdx = indices[1];
+            showFloatingText(squares[centerIdx]);
+            indices.forEach(idx => {
+                squares[idx].classList.add('match');
+                setTimeout(() => {
+                    squares[idx].classList.remove('match');
+                    let newItem = gameItems[Math.floor(Math.random() * gameItems.length)];
+                    squares[idx].setAttribute('data-type', newItem.type);
+                    squares[idx].querySelector('img').src = newItem.src;
+                }, 500);
+            });
+            if(score >= 100) {
+                setTimeout(() => {
+                    gameWrapper.style.opacity = '0';
+                    dropCurtain();
+                    setTimeout(() => {
+                        gameWrapper.style.display = 'none';
+                        document.getElementById('proposal-layer').style.display = 'flex';
+                    }, 1000);
+                }, 800);
+            }
+        }
+
+        function showFloatingText(element) {
+            let floatEl = document.createElement('div');
+            floatEl.className = 'float-score';
+            floatEl.innerText = "+20";
+            let rect = element.getBoundingClientRect();
+            floatEl.style.left = rect.left + 'px'; floatEl.style.top = rect.top + 'px';
+            document.body.appendChild(floatEl);
+            setTimeout(() => floatEl.remove(), 1000);
+        }
+
+        // RAIN
+        let rainInterval;
+        function dropCurtain() {
+            rainInterval = setInterval(() => {
+                const el = document.createElement('div');
+                el.classList.add('curtain-heart');
+                let size = Math.random() * 50 + 30; el.style.width = size+'px'; el.style.height = size+'px';
+                el.style.left = Math.random()*100 + 'vw';
+                el.style.transition = `top ${Math.random()*1.5+1}s linear`;
+                curtainLayer.appendChild(el);
+                requestAnimationFrame(() => { el.style.top = '110vh'; });
+                setTimeout(() => el.remove(), 2500);
+            }, 60); 
+        }
+        function stopRain() { clearInterval(rainInterval); }
+
+        function celebrate() {
+            document.getElementById('proposal-layer').style.display = 'none';
+            document.getElementById('celebration-screen').style.display = 'flex';
+            stopRain();
+            setInterval(() => {
+                const el = document.createElement('div');
+                el.classList.add('curtain-heart');
+                el.style.left = Math.random()*100 + 'vw';
+                el.style.transition = `top 3s linear`;
+                curtainLayer.appendChild(el);
+                requestAnimationFrame(() => { el.style.top = '110vh'; });
+                setTimeout(() => el.remove(), 3000);
+            }, 100);
+
+            // SHOW LETTER ICON AFTER 2 SECONDS
+            setTimeout(() => {
+                letterIcon.style.display = 'block';
+            }, 2000);
+        }
+
+        // LETTER FUNCTIONS
+        function openLetter() { letterModal.style.display = 'flex'; }
+        function closeLetter() { letterModal.style.display = 'none'; }
+        
+        // NO BUTTON DODGE
+        const noBtn = document.getElementById('noBtn');
+        const pCard = document.getElementById('proposal-card');
+        
+        function dodgeButton() {
+            const maxX = pCard.clientWidth - noBtn.clientWidth - 20;
+            const maxY = pCard.clientHeight - noBtn.clientHeight - 20;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            noBtn.style.left = x + 'px'; noBtn.style.top = y + 'px';
+            noBtn.style.right = 'auto'; noBtn.style.bottom = 'auto';
+        }
+        noBtn.addEventListener('mouseover', dodgeButton);
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); dodgeButton(); });
+
+    </script>
+</body>
+</html>
